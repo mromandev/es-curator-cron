@@ -13,14 +13,13 @@ version: "3.7"
 
 services:
   curator:
-    image: lexpredict/es-curator-cron:latest
+    image: mromandev/es-curator-cron:latest
     environment:
-      - "PERIOD=15min"
-      - "KEEP_DAYS=30"
-      - "INDEX_PREFIX=logstash"
+      - "PERIOD=hourly"
+      - "KEEP_DAYS=7"
+      - "INDEX_PREFIX=kpf-kapsch-"
+      - "INDEX_PATTERN=%Y-%d-%m"
     command: "--host elasticsearch --port 9200"
 ```
-
+INDEX_PATTERN refers to timestring on filtertype age
 You can set the cron `PERIOD` to 15min, hourly, daily, weekly and monthly.
-
-The default index pattern is `[prefix-]%Y.%m.%d`.
