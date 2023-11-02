@@ -1,21 +1,17 @@
-FROM alpine:3.14
+FROM python:3.9.7-alpine3.14
 
 LABEL elasticsearch-curator=5.8.1
 
-# Estableciendo la variable de entorno PATH
+# Variables de entorno
 ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-# Estableciendo la variable de entorno LANG
 ENV LANG=C.UTF-8
 
 # Instalación de paquetes
 RUN set -eux; \
     apk add --no-cache ca-certificates tzdata;
 
-# Estableciendo la variable de entorno GPG_KEY
+# Variables de entorno
 ENV GPG_KEY=E3FF2839C048B25C084DEBE9B26995E310250568
-
-# Estableciendo la variable de entorno PYTHON_VERSION
 ENV PYTHON_VERSION=3.9.7
 
 # Descarga, verificación, y compilación de Python
@@ -44,18 +40,17 @@ RUN set -ex \
     && apk del --no-network .build-deps \
     && python3 --version
 
-# Creando enlaces simbólicos para ejecutables de Python
-RUN cd /usr/local/bin \
-    && ln -s idle3 idle \
-    && ln -s pydoc3 pydoc \
-    && ln -s python3 python \
-    && ln -s python3-config python-config
+# Creando enlaces simbólicos para ejecutables de Python (accesos directos)
+RUN cd /usr/local/bin 
+#\
+    #&& ln -s idle3 idle \
+    #&& ln -s pydoc3 pydoc \
+    #&& ln -s python3 python \
+    #&& ln -s python3-config python-config
 
-# Estableciendo variables de entorno para Python Pip y Setuptools
+# Variables de entorno
 ENV PYTHON_PIP_VERSION=21.2.4
 ENV PYTHON_SETUPTOOLS_VERSION=57.5.0
-
-# Estableciendo variables de entorno para la URL y SHA256 de get-pip
 ENV PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/3cb8888cc2869620f57d5d2da64da38f516078c7/public/get-pip.py
 ENV PYTHON_GET_PIP_SHA256=c518250e91a70d7b20cceb15272209a4ded2a0c263ae5776f129e0d9b5674309
 
@@ -74,8 +69,14 @@ CMD ["python3"]
 # Añadiendo una etiqueta al contenedor
 LABEL elasticsearch-curator=5.8.4
 
+# Dado que PyYAML en la version 5.4.1 no funciona con la version de python, descargamos la wheel y la instalamos 
+# (Cuidar ese archivo COMO ORO que ya no hay version para alpine en la pagina oficial de pyyaml)
+COPY PyYAML-5.4.1-cp39-cp39-linux_x86_64.whl /usr/bin/PyYAML-5.4.1-cp39-cp39-linux_x86_64.whl
+
+RUN pip install /usr/bin/PyYAML-5.4.1-cp39-cp39-linux_x86_64.whl
+
 # Instalando Elasticsearch Curator
-RUN /bin/sh -c pip install elasticsearch-curator==5.8.4 && rm -rf /var/cache/apk/*
+RUN pip install elasticsearch-curator==5.8.4 && rm -rf /var/cache/apk/*
 
 # Copiando el script entrypoint.sh al contenedor
 COPY entrypoint.sh /usr/bin/entrypoint.sh
